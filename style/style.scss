@@ -1,0 +1,219 @@
+$mainColor: #4a08a0;
+$range-width: 100% !default;
+$range-handle-size: 20px !default;
+$range-track-height: 10px !default;
+$range-label-width: 60px !default;
+
+
+::selection,
+::-moz-selection {
+  background: transparent;
+}
+
+
+body {
+  background: #1e1308;
+  color: #fff;
+  // background-color: #0000fe;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+
+
+  p {
+    margin: 0;
+    line-height: 1;
+
+    &:first-of-type {
+      margin-top: 20px;
+    }
+  }
+
+  input {
+    // font-family: 'VT323', monospace;
+    // font-size: 50px;
+    // border: none;
+    // background: none;
+    width: 100px;
+  }
+
+  canvas {
+    //width: 100vw;
+    //height: 100vh;
+    // width: 400px;
+    // height: 300px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    // cursor: grab;
+  }
+
+  #info {
+    position: absolute;
+    top: 7vh;
+    left: 5vw;
+  }
+
+  .range-slider {
+    margin: 60px 0 0 0%;
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    transform: translateY(-50%);
+    right: 5%;
+    text-align: right;
+  }
+
+  .range-slider__range {
+    -webkit-appearance: none;
+    width: calc(100% - (#{$range-label-width + 13px}));
+    height: $range-track-height;
+    border-radius: 5px;
+    background: #ccc;
+    outline: none;
+    padding: 0;
+    margin: 0;
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+      width: $range-handle-size;
+      height: $range-handle-size;
+      border-radius: 50%;
+      background: #000;
+      cursor: pointer;
+      transition: background .15s ease-in-out;
+
+      &:hover {
+        background: $mainColor;
+      }
+    }
+
+    &:active::-webkit-slider-thumb {
+      background: $mainColor;
+    }
+
+    &::-moz-range-thumb {
+      width: $range-handle-size;
+      height: $range-handle-size;
+      border: 0;
+      border-radius: 50%;
+      background: #000;
+      cursor: pointer;
+      transition: background .15s ease-in-out;
+
+      &:hover {
+        background: $mainColor;
+      }
+    }
+
+  }
+
+  h1 {
+    font-weight: 400;
+    margin: 0;
+    line-height: 1;
+
+    small {
+      padding-bottom: 30px;
+    }
+  }
+
+  #gui {
+    position: absolute;
+    top: 15%;
+    right: 5%;
+    z-index: 999;
+    text-align: right;
+    font-size: 24px;
+
+    span {
+      font-size: 60px;
+      margin-left: 5px;
+    }
+  }
+
+  #timeout {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -55%) scale3d(1, 1, 1) rotate(-10deg);
+    transition: all 1s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+    z-index: 999;
+    font-size: 10vw;
+    color: #fff;
+    background-color: rgba(0, 0, 0, .9);
+    padding: 0px 35px;
+    line-height: 1;
+
+    &.shown {
+      opacity: 1;
+      transform: translate(-50%, -55%) scale3d(1.3, 1.3, 1) rotate(-1deg);
+
+    }
+  }
+
+  button {
+    border: none;
+    padding: 10px 20px;
+    margin-top: 20px;
+    box-shadow: 10px 10px 0 rgba(0, 0, 0, 1);
+    font-family: 'VT323', monospace;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-size: 30px;
+    background-color: $mainColor;
+    transition: all cubic-bezier(0.19, 1, 0.22, 1) .3s;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+      background-color: darken($mainColor, 10%);
+    }
+  }
+}
+
+@media screen and (max-width: 990px) {
+  body {
+    font-size: 12px;
+
+    #info {
+      bottom: 25px;
+      left: 25px;
+      top: 20px;
+    }
+
+    #gui {
+      top: 20px;
+    }
+
+    h1 small {
+      display: none;
+    }
+
+    p:first-of-type {
+      margin-top: 0;
+    }
+
+    .range-slider {
+      bottom: 45px;
+      top: initial;
+      width: 100%;
+      right: 35px;
+      transform: translateY(0);
+    }
+
+    #timeout {
+      padding: 0px 12px;
+    }
+  }
+
+}
