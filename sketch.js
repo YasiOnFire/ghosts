@@ -15,8 +15,6 @@ new Vue({
 		timeLimit: 20,
 		PIXEL_SIZE_X: Math.floor(window.innerWidth / 50),
 		PIXEL_SIZE_Y: Math.floor(window.innerHeight / 20),
-		// PIXEL_SIZE_X: 14,
-		// PIXEL_SIZE_Y: 14,
 		PIXEL_COUNT: Math.floor(window.innerWidth * window.innerHeight / 3000),
 		GHOSTS_COUNT: Math.floor(window.innerWidth * window.innerHeight / 60000),
 		GHOSTS_RADIUS: 14,
@@ -111,6 +109,12 @@ new Vue({
 			})
 
 			if (_this.inGame) {
+				document.addEventListener('touchmove', (event) => {
+					event.preventDefault()
+					var touch = event.touches[0]
+					_this.position.x = touch.clientX
+					_this.position.y = touch.clientY
+				})
 				document.addEventListener('mousemove', (event) => {
 					_this.position.x = event.clientX
 					_this.position.y = event.clientY
@@ -129,39 +133,13 @@ new Vue({
 					topleft: new Vec2(randX, randY),
 					bottomright: new Vec2((randX + _this.PIXEL_SIZE_X), randY + _this.PIXEL_SIZE_Y)
 				}))
-				// console.log(maskArr[x].x === objArr[x].topleft.x, maskArr[x].y === objArr[x].topleft.y)
 			}
-
-			// function checkIfExist(x, y) {
-			// 	let found = false
-			// 	for (let z = 0; z < maskArr.length; z++) {
-			// 		// console.log('maskArr: ', maskArr[z].x, x, maskArr[z].y, y);
-			// 		if (_this.dist(maskArr[z].x, x - _this.PIXEL_SIZE_X) < 15 && _this.dist(maskArr[z].y, y - _this.PIXEL_SIZE_Y) < 15) {
-			// 			found = true
-			// 			console.log('found: ', found, maskArr[z].x, x, maskArr[z].y, y);
-			// 		}
-			// 	}
-			// 	return found
-			// }
-
-			// generate ghosts
-			// check if x and y is occupied else generate nww cords
 			let randX, randY
 			for (let y = 0; y <= _this.GHOSTS_COUNT; y++) {
 				if (_this.ghostsArr.length < _this.GHOSTS_COUNT) {
 					do {
-						randX = _this.getRndInteger('x', window.innerWidth - _this.PIXEL_SIZE_X)
-						randY = _this.getRndInteger('y', window.innerHeight - _this.PIXEL_SIZE_Y)
-						// console.log('losuje: ', randX, randY);
-						// objArr.filter((e) => {
-						// 	// return e.topleft.x === randX && e.topleft.y === randY
-						// })
-						// maskArr.filter((e) => {
-						// 	if (e.x === randX && e.y === randY) {
-						// 		console.log('e.: ', e.x === randX && e.y === randY, e.x, randX, e.y, randY);
-						// 	}
-						// 	// return e.x === randX && e.y === randY
-						// }).length > 0
+						randX = _this.getRndInteger('x', window.innerWidth - _this.PIXEL_SIZE_X * 2)
+						randY = _this.getRndInteger('y', window.innerHeight - _this.PIXEL_SIZE_Y * 2)
 					} while (_this.ghostsArr.filter((e) => {
 							return e.center.x === randX && e.center.y === randY
 						}).length > 0 || maskArr.filter((e) => {
@@ -169,11 +147,6 @@ new Vue({
 						}).length > 0 || maskArr.filter((e) => {
 							return e.x + _this.PIXEL_SIZE_X == randX && e.y + _this.PIXEL_SIZE_Y == randY
 						}).length > 0)
-					// }).length > 0 || checkIfExist(randX, randY))
-					// randX = _this.getRndInteger('x', window.innerWidth - _this.PIXEL_SIZE_X)
-					// randY = _this.getRndInteger('y', window.innerHeight - _this.PIXEL_SIZE_Y)
-
-					console.log("dodaje: ", randX, randY)
 					_this.ghostsArr.push(new DiscObject({
 						center: new Vec2(Math.floor(randX + _this.PIXEL_SIZE_X / 2), Math.floor(randY + _this.PIXEL_SIZE_Y / 2)),
 						radius: _this.GHOSTS_RADIUS
@@ -184,7 +157,6 @@ new Vue({
 					}))
 				}
 			}
-			console.log(maskArr, _this.ghostsArr, objArr);
 
 			const lighting2 = new Lighting({
 				light: light2,
@@ -211,14 +183,6 @@ new Vue({
 				ctx.fillRect(0, 0, canvas.width, canvas.height)
 				ctx.drawImage(wood, 0, 0, window.innerWidth, window.innerHeight)
 
-				// ctx.fillStyle = "#1e1308"
-				// for (let x = 0; x < objArr.length; x++) {
-				// 	ctx.beginPath()
-				// 	objArr[x].path(ctx)
-				// 	ctx.fill()
-				// }
-
-
 				for (let x = 0; x < _this.ghostsArr.length; x++) {
 					ctx.beginPath()
 					_this.ghostsArr[x].path(ctx)
@@ -234,7 +198,6 @@ new Vue({
 				darkmask.render(ctx)
 				for (let x = 0; x < objArr.length; x++) {
 					ctx.fillStyle = "#1e1308"
-					// ctx.fillStyle = "rgba(255,0,0,0.4)"
 					ctx.fillRect(maskArr[x].x, maskArr[x].y, _this.PIXEL_SIZE_X, _this.PIXEL_SIZE_Y)
 				}
 				ctx.fillStyle = "#1e1308"
@@ -254,7 +217,6 @@ new Vue({
 						}
 						_this.taggedGhostsArr[x].center.x = _this.ghostsArr[x].center.x
 						_this.taggedGhostsArr[x].center.y = _this.ghostsArr[x].center.y
-						console.log('_this.ghostsArr[x].center.y: ', _this.ghostsArr[x].center.x, _this.ghostsArr[x].center.y);
 					}
 				}
 			})
