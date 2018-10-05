@@ -3,19 +3,61 @@ new Vue({
 	data: {
 		gameOver: false,
 		message: 'Game Over',
-		positionX: 500,
-		positionY: 100,
+		position: {
+			x: 500,
+			y: 100
+		},
 		flashLightAngle: 0,
 		score: 0,
-		PIXEL_SIZE: 30,
+		inGame: false,
+		timer: null,
+		timelineParameters: null,
+		timeLimit: 20,
 		PIXEL_SIZE_X: Math.floor(window.innerWidth / 50),
 		PIXEL_SIZE_Y: Math.floor(window.innerHeight / 20),
+		// PIXEL_SIZE_X: 14,
+		// PIXEL_SIZE_Y: 14,
 		PIXEL_COUNT: Math.floor(window.innerWidth * window.innerHeight / 3000),
 		GHOSTS_COUNT: Math.floor(window.innerWidth * window.innerHeight / 60000),
+		GHOSTS_RADIUS: 14,
 		ghostsArr: [],
 		taggedGhostsArr: []
 	},
+	watch: {
+		score(val, newVal) {
+			if (val === this.GHOSTS_COUNT && !this.gameOver) {
+				this.gameOver = true
+				this.message = 'YOU WIN!'
+				clearInterval(this.timer)
+			}
+		},
+		timeLimit(val) {
+			if (val <= 0) {
+				clearInterval(this.timer)
+				this.gameOver = true
+				this.message = 'TIME OUT!'
+			}
+		}
+	},
 	methods: {
+		restartGame() {
+			this.timelineParameters.loop = false
+			this.timelineParameters.autoplay = false
+			this.timelineParameters.pause()
+			this.inGame = true;
+			this.gameOver = false;
+			this.ghostsArr = []
+			this.taggedGhostsArr = []
+			this.timeLimit = 20
+			this.score = 0
+			this.initGame()
+			this.timer = setInterval(() => {
+				this.timeLimit -= 1
+			}, 1000)
+		},
+		startGame() {
+			this.restartGame();
+		},
 		getRndInteger(axis, max) {
 			if (axis === 'x') {
 				return this.PIXEL_SIZE_X + this.PIXEL_SIZE_X * Math.floor(Math.random() * (max / this.PIXEL_SIZE_X))
@@ -24,7 +66,22 @@ new Vue({
 			}
 		},
 		dist(a, b) {
-			return Math.abs(a - b);
+			return Math.abs(a - b)
+		},
+		initDemo() {
+			this.timelineParameters = anime.timeline({
+				direction: 'alternate',
+				loop: true
+			})
+
+			this.timelineParameters
+				.add({
+					targets: this.position,
+					x: [this.getRndInteger('x', window.innerWidth), this.getRndInteger('x', window.innerWidth), this.getRndInteger('x', window.innerWidth), this.getRndInteger('x', window.innerWidth)],
+					y: [this.getRndInteger('y', window.innerHeight), this.getRndInteger('y', window.innerHeight), this.getRndInteger('y', window.innerHeight), this.getRndInteger('y', window.innerHeight)],
+					duration: 10000,
+					easing: 'easeInOutQuad'
+				})
 		},
 		initGame() {
 			let _this = this
@@ -33,58 +90,32 @@ new Vue({
 				DiscObject = illuminated.DiscObject,
 				Vec2 = illuminated.Vec2,
 				Lighting = illuminated.Lighting,
-				DarkMask = illuminated.DarkMask;
+				DarkMask = illuminated.DarkMask
 
-			const keyCodes = {
-					left: 37,
-					up: 38,
-					right: 39,
-					down: 40
-				},
-				keys = [];
-
-			document.addEventListener('keydown', function (evt) {
-				keys[evt.keyCode] = true;
-			});
-
-			document.addEventListener('keyup', function (evt) {
-				keys[evt.keyCode] = false;
-			});
-			document.addEventListener('mousemove', (event) => {
-				_this.positionX = event.clientX
-				_this.positionY = event.clientY
-			})
-			document.addEventListener('wheel', (event) => {
-				if (event.deltaY) {
-					if (event.deltaY < 0) {
-						_this.flashLightAngle -= 1
-					} else {
-						_this.flashLightAngle += 1
-					}
-				}
-			})
-
-			const canvas = document.querySelector("#canvas_container canvas");
+			const wood = document.getElementById("wood")
+			const ghost = document.getElementById("ghost")
+			const ghost_tagged = document.getElementById("ghost_tagged")
+			const canvas = document.querySelector("#canvas_container canvas")
 			canvas.width = window.innerWidth
 			canvas.height = window.innerHeight
 			const ctx = canvas.getContext("2d");
 
-			// const light1 = new Lamp({
-			// 	position: new Vec2(parseInt(_this.positionX), parseInt(_this.positionY)),
-			// 	distance: 200,
-			// 	radius: 10,
-			// 	samples: 50
-			// });
 			const light2 = new Lamp({
-				position: new Vec2(parseInt(_this.positionX), parseInt(_this.positionY)),
+				position: new Vec2(parseInt(_this.position.x), parseInt(_this.position.y)),
 				color: '#d66a00',
 				distance: 180,
 				radius: 5,
 				samples: 3,
 				// angle: _this.flashLightAngle,
 				// roughness: .9
-			});
+			})
 
+			if (_this.inGame) {
+				document.addEventListener('mousemove', (event) => {
+					_this.position.x = event.clientX
+					_this.position.y = event.clientY
+				})
+			}
 			var objArr = []
 			var maskArr = []
 			for (let x = 0; x <= _this.PIXEL_COUNT; x++) {
@@ -93,133 +124,145 @@ new Vue({
 				maskArr.push({
 					x: randX,
 					y: randY
-				});
+				})
 				objArr.push(new RectangleObject({
 					topleft: new Vec2(randX, randY),
 					bottomright: new Vec2((randX + _this.PIXEL_SIZE_X), randY + _this.PIXEL_SIZE_Y)
 				}))
+				// console.log(maskArr[x].x === objArr[x].topleft.x, maskArr[x].y === objArr[x].topleft.y)
 			}
 
-			console.log('maskArr: ', objArr);
+			// function checkIfExist(x, y) {
+			// 	let found = false
+			// 	for (let z = 0; z < maskArr.length; z++) {
+			// 		// console.log('maskArr: ', maskArr[z].x, x, maskArr[z].y, y);
+			// 		if (_this.dist(maskArr[z].x, x - _this.PIXEL_SIZE_X) < 15 && _this.dist(maskArr[z].y, y - _this.PIXEL_SIZE_Y) < 15) {
+			// 			found = true
+			// 			console.log('found: ', found, maskArr[z].x, x, maskArr[z].y, y);
+			// 		}
+			// 	}
+			// 	return found
+			// }
+
 			// generate ghosts
-			// for (let x = 0; x < objArr.length; x++) {
 			// check if x and y is occupied else generate nww cords
 			let randX, randY
-			console.log('_this.GHOSTS_COUNT: ', _this.GHOSTS_COUNT);
 			for (let y = 0; y <= _this.GHOSTS_COUNT; y++) {
 				if (_this.ghostsArr.length < _this.GHOSTS_COUNT) {
 					do {
-						objArr.filter((e) => {
-							console.log('e.: ', e.topleft.x === randX && e.topleft.y === randY);
-							// return e.topleft.x === randX && e.topleft.y === randY
-						});
-						randX = _this.getRndInteger('x', window.innerWidth - _this.PIXEL_SIZE_X);
-						randY = _this.getRndInteger('y', window.innerHeight - _this.PIXEL_SIZE_Y);
-					} while (objArr.filter((e) => {
-							return e.topleft.x + (_this.PIXEL_SIZE_X / 2) === randX && e.topleft.y + (_this.PIXEL_SIZE_Y / 2) === randY
-						}).length > 0 || _this.ghostsArr.filter((e) => {
+						randX = _this.getRndInteger('x', window.innerWidth - _this.PIXEL_SIZE_X)
+						randY = _this.getRndInteger('y', window.innerHeight - _this.PIXEL_SIZE_Y)
+						// console.log('losuje: ', randX, randY);
+						// objArr.filter((e) => {
+						// 	// return e.topleft.x === randX && e.topleft.y === randY
+						// })
+						// maskArr.filter((e) => {
+						// 	if (e.x === randX && e.y === randY) {
+						// 		console.log('e.: ', e.x === randX && e.y === randY, e.x, randX, e.y, randY);
+						// 	}
+						// 	// return e.x === randX && e.y === randY
+						// }).length > 0
+					} while (_this.ghostsArr.filter((e) => {
 							return e.center.x === randX && e.center.y === randY
+						}).length > 0 || maskArr.filter((e) => {
+							return e.x == randX && e.y == randY
+						}).length > 0 || maskArr.filter((e) => {
+							return e.x + _this.PIXEL_SIZE_X == randX && e.y + _this.PIXEL_SIZE_Y == randY
 						}).length > 0)
-					console.log("dodaje: ", randX, randY, );
+					// }).length > 0 || checkIfExist(randX, randY))
+					// randX = _this.getRndInteger('x', window.innerWidth - _this.PIXEL_SIZE_X)
+					// randY = _this.getRndInteger('y', window.innerHeight - _this.PIXEL_SIZE_Y)
+
+					console.log("dodaje: ", randX, randY)
 					_this.ghostsArr.push(new DiscObject({
-						center: new Vec2(randX - (_this.PIXEL_SIZE_X / 2), randY - (_this.PIXEL_SIZE_Y / 2)),
-						radius: 22
+						center: new Vec2(Math.floor(randX + _this.PIXEL_SIZE_X / 2), Math.floor(randY + _this.PIXEL_SIZE_Y / 2)),
+						radius: _this.GHOSTS_RADIUS
 					}))
 					_this.taggedGhostsArr.push(new DiscObject({
 						center: new Vec2(-100, -100),
-						radius: 22
+						radius: _this.GHOSTS_RADIUS
 					}))
-
 				}
 			}
-			// }
+			console.log(maskArr, _this.ghostsArr, objArr);
 
 			const lighting2 = new Lighting({
 				light: light2,
 				objects: [..._this.ghostsArr, ...objArr]
-			});
+			})
 
 			const darkmask = new DarkMask({
-				// lights: [light1, light2]
 				lights: [light2],
 				color: 'rgba(0,0,0,1)'
-			});
+			})
+
+			if (!_this.inGame) {
+				_this.initDemo()
+			}
 
 			function render() {
-				if (keys[keyCodes.left]) {
-					_this.positionX -= 1;
-					_this.flashLightAngle = 3
-				} else if (keys[keyCodes.right]) {
-					_this.positionX += 1;
-					_this.flashLightAngle = 0
-				}
-				// up/down
-				if (keys[keyCodes.up]) {
-					_this.positionY -= 1;
-					_this.flashLightAngle = 1
-				} else if (keys[keyCodes.down]) {
-					_this.positionY += 1;
-					_this.flashLightAngle = 4
-				}
+				light2.position = new Vec2(parseInt(_this.position.x), parseInt(_this.position.y))
+				light2.angle = parseInt(_this.flashLightAngle)
 
-				// light1.position = new Vec2(parseInt(_this.positionX), parseInt(_this.positionY));
-				light2.position = new Vec2(parseInt(_this.positionX), parseInt(_this.positionY));
-				light2.angle = parseInt(_this.flashLightAngle);
+				lighting2.compute(canvas.width, canvas.height)
+				darkmask.compute(canvas.width, canvas.height)
 
-				// lighting1.compute(canvas.width, canvas.height);
-				lighting2.compute(canvas.width, canvas.height);
-				darkmask.compute(canvas.width, canvas.height);
+				ctx.fillStyle = "#1e1308"
+				ctx.fillRect(0, 0, canvas.width, canvas.height)
+				ctx.drawImage(wood, 0, 0, window.innerWidth, window.innerHeight)
 
-				ctx.fillStyle = "#1e1308";
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				// ctx.fillStyle = "#1e1308"
+				// for (let x = 0; x < objArr.length; x++) {
+				// 	ctx.beginPath()
+				// 	objArr[x].path(ctx)
+				// 	ctx.fill()
+				// }
 
-				ctx.fillStyle = "#1e1308";
-				for (let x = 0; x < objArr.length; x++) {
-					ctx.beginPath();
-					objArr[x].path(ctx);
-					ctx.fill();
-				}
 
 				for (let x = 0; x < _this.ghostsArr.length; x++) {
-					ctx.fillStyle = _this.taggedGhostsArr[x].center.x === _this.ghostsArr[x].center.x && _this.taggedGhostsArr[x].center.y === _this.ghostsArr[x].center.y ? "#ff0000" : "#cee3e8";
-					ctx.beginPath();
-					_this.ghostsArr[x].path(ctx);
-					ctx.fill();
+					ctx.beginPath()
+					_this.ghostsArr[x].path(ctx)
+					if (_this.taggedGhostsArr[x].center.x === _this.ghostsArr[x].center.x && _this.taggedGhostsArr[x].center.y === _this.ghostsArr[x].center.y) {
+						ctx.drawImage(ghost_tagged, _this.ghostsArr[x].center.x - _this.GHOSTS_RADIUS, _this.ghostsArr[x].center.y - _this.GHOSTS_RADIUS, _this.GHOSTS_RADIUS * 2, _this.GHOSTS_RADIUS * 2)
+					} else {
+						ctx.drawImage(ghost, _this.ghostsArr[x].center.x - _this.GHOSTS_RADIUS, _this.ghostsArr[x].center.y - _this.GHOSTS_RADIUS, _this.GHOSTS_RADIUS * 2, _this.GHOSTS_RADIUS * 2)
+					}
 				}
-
-				ctx.globalCompositeOperation = "lighter";
-				// lighting1.render(ctx);
-				lighting2.render(ctx);
-
-				ctx.globalCompositeOperation = "source-over";
-				darkmask.render(ctx);
+				ctx.globalCompositeOperation = "lighter"
+				lighting2.render(ctx)
+				ctx.globalCompositeOperation = "source-over"
+				darkmask.render(ctx)
 				for (let x = 0; x < objArr.length; x++) {
-					ctx.fillStyle = "#1e1308";
-					ctx.fillRect(maskArr[x].x, maskArr[x].y, _this.PIXEL_SIZE_X, _this.PIXEL_SIZE_Y);
+					ctx.fillStyle = "#1e1308"
+					// ctx.fillStyle = "rgba(255,0,0,0.4)"
+					ctx.fillRect(maskArr[x].x, maskArr[x].y, _this.PIXEL_SIZE_X, _this.PIXEL_SIZE_Y)
 				}
-				ctx.fillStyle = "#1e1308";
-				ctx.fillRect(0, 0, window.innerWidth, 6);
-				ctx.fillRect(0, window.innerHeight - 6, window.innerWidth, 6);
-				ctx.fillRect(window.innerWidth - 6, 0, 6, window.innerHeight);
-				ctx.fillRect(0, 0, 6, window.innerHeight);
-
+				ctx.fillStyle = "#1e1308"
+				ctx.fillRect(0, 0, window.innerWidth, 6)
+				ctx.fillRect(0, window.innerHeight - 6, window.innerWidth, 6)
+				ctx.fillRect(window.innerWidth - 6, 0, 6, window.innerHeight)
+				ctx.fillRect(0, 0, 6, window.innerHeight)
 			}
 			document.addEventListener('click', (e) => {
+				if (!_this.inGame || _this.gameOver) return false
 				for (let x = 0; x < _this.ghostsArr.length; x++) {
-					let distX = _this.dist(e.clientX, _this.ghostsArr[x].center.x);
-					let distY = _this.dist(e.clientY, _this.ghostsArr[x].center.y);
-					if (distX <= 10 && distY <= 10) {
+					let distX = _this.dist(e.clientX, _this.ghostsArr[x].center.x)
+					let distY = _this.dist(e.clientY, _this.ghostsArr[x].center.y)
+					if (distX <= _this.GHOSTS_RADIUS - 2 && distY <= _this.GHOSTS_RADIUS - 2) {
+						if (_this.taggedGhostsArr[x].center.x !== _this.ghostsArr[x].center.x && _this.taggedGhostsArr[x].center.y !== _this.ghostsArr[x].center.y) {
+							_this.score += 1
+						}
 						_this.taggedGhostsArr[x].center.x = _this.ghostsArr[x].center.x
 						_this.taggedGhostsArr[x].center.y = _this.ghostsArr[x].center.y
-						_this.score += 1
+						console.log('_this.ghostsArr[x].center.y: ', _this.ghostsArr[x].center.x, _this.ghostsArr[x].center.y);
 					}
 				}
 			})
 
 			requestAnimFrame(function loop() {
-				requestAnimFrame(loop, canvas);
-				render();
-			}, canvas);
+				requestAnimFrame(loop, canvas)
+				render()
+			}, canvas)
 		}
 	},
 	mounted() {

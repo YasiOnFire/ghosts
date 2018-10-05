@@ -1,4 +1,4 @@
-$mainColor: #4a08a0;
+$mainColor: #ff6b02;
 $range-width: 100% !default;
 $range-handle-size: 20px !default;
 $range-track-height: 10px !default;
@@ -14,115 +14,70 @@ $range-label-width: 60px !default;
 body {
   background: #1e1308;
   color: #fff;
-  // background-color: #0000fe;
   width: 100vw;
   height: 100vh;
   margin: 0;
   padding: 0;
   overflow: hidden;
   position: relative;
-  font-family: 'VT323', monospace;
+  font-family: 'Permanent Marker', cursive;
   font-size: 22px;
 
 
   p {
+    width: 100%;
     margin: 0;
     line-height: 1;
-
-    &:first-of-type {
-      margin-top: 20px;
-    }
-  }
-
-  input {
-    // font-family: 'VT323', monospace;
-    // font-size: 50px;
-    // border: none;
-    // background: none;
-    width: 100px;
   }
 
   canvas {
     //width: 100vw;
     //height: 100vh;
-    // width: 400px;
-    // height: 300px;
     top: 0;
     left: 0;
     bottom: 0;
     right: 0;
     position: absolute;
-    // cursor: grab;
+    cursor: grab;
+    image-rendering: auto;
+  }
+
+  #overlay {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    z-index: 998;
+    top: 0;
+    left: 0;
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, .3);
+    transition: all ease-in-out .3s;
+
+    &.shown {
+      animation: fadeIn 1s;
+      display: flex;
+    }
   }
 
   #info {
-    position: absolute;
-    top: 7vh;
-    left: 5vw;
-  }
+    text-align: center;
+    width: 100%;
+    max-width: 450px;
 
-  .range-slider {
-    margin: 60px 0 0 0%;
-    position: absolute;
-    top: 50%;
-    width: 30%;
-    transform: translateY(-50%);
-    right: 5%;
-    text-align: right;
-  }
-
-  .range-slider__range {
-    -webkit-appearance: none;
-    width: calc(100% - (#{$range-label-width + 13px}));
-    height: $range-track-height;
-    border-radius: 5px;
-    background: #ccc;
-    outline: none;
-    padding: 0;
-    margin: 0;
-
-    &::-webkit-slider-thumb {
-      appearance: none;
-      width: $range-handle-size;
-      height: $range-handle-size;
-      border-radius: 50%;
-      background: #000;
-      cursor: pointer;
-      transition: background .15s ease-in-out;
-
-      &:hover {
-        background: $mainColor;
-      }
+    small {
+      // font-size: 50%;
+      line-height: 1;
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     }
-
-    &:active::-webkit-slider-thumb {
-      background: $mainColor;
-    }
-
-    &::-moz-range-thumb {
-      width: $range-handle-size;
-      height: $range-handle-size;
-      border: 0;
-      border-radius: 50%;
-      background: #000;
-      cursor: pointer;
-      transition: background .15s ease-in-out;
-
-      &:hover {
-        background: $mainColor;
-      }
-    }
-
   }
 
   h1 {
     font-weight: 400;
-    margin: 0;
+    margin: 0 0 10px;
     line-height: 1;
-
-    small {
-      padding-bottom: 30px;
-    }
   }
 
   #gui {
@@ -132,6 +87,8 @@ body {
     z-index: 999;
     text-align: right;
     font-size: 24px;
+    pointer-events: none;
+    opacity: .6;
 
     span {
       font-size: 60px;
@@ -143,30 +100,35 @@ body {
     position: absolute;
     left: 50%;
     top: 50%;
-    opacity: 0;
-    pointer-events: none;
     transform: translate(-50%, -55%) scale3d(1, 1, 1) rotate(-10deg);
-    transition: all 1s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+    transition: all 1s cubic-bezier(0.455, 0.03, 0.515, 0.955) 3s;
     z-index: 999;
-    font-size: 10vw;
+    font-size: 5vw;
     color: #fff;
-    background-color: rgba(0, 0, 0, .9);
-    padding: 0px 35px;
+    background-color: rgba(0, 0, 0, .8);
+    padding: 20px 35px;
     line-height: 1;
+    text-align: center;
+    display: none;
 
     &.shown {
-      opacity: 1;
+      // opacity: 1;
       transform: translate(-50%, -55%) scale3d(1.3, 1.3, 1) rotate(-1deg);
-
+      animation: fadeIn 1s;
+      display: block;
     }
+  }
+
+  .hidden-elements {
+    display: none;
   }
 
   button {
     border: none;
-    padding: 10px 20px;
+    padding: 10px 30px;
     margin-top: 20px;
-    box-shadow: 10px 10px 0 rgba(0, 0, 0, 1);
-    font-family: 'VT323', monospace;
+    font-family: 'Permanent Marker', cursive;
+    border-radius: 40px;
     text-transform: uppercase;
     cursor: pointer;
     font-size: 30px;
@@ -216,4 +178,24 @@ body {
     }
   }
 
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }

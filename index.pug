@@ -4,19 +4,32 @@ head
   meta(http-equiv='X-UA-Compatible' content='IE=edge')
   meta(name='viewport' content='width=device-width, initial-scale=1')
   link(rel='stylesheet' href='style.css')
-  link(href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet")
+  link(href="https://fonts.googleapis.com/css?family=Permanent+Marker" rel="stylesheet")
   
   title Ghosts Boo-sters!
   #app
     #canvas_container
       canvas
-    //- #info
-    //-   h1
-    //-     |Ghosts Boo-sters!
     #gui
+      | Time: {{ timeLimit }}<br>
       | Found: {{ score }} of {{ GHOSTS_COUNT }}<br>
-    #timeout(:class="gameOver ? 'shown' : ''")| {{message}}
+    .hidden-elements
+      img#wood(src="wooden_floor.jpg", alt="wood")
+      img#ghost(src="ghost.png", alt="ghost")
+      img#ghost_tagged(src="ghost_tagged.png", alt="ghost_tagged")
+    #overlay(:class="inGame ? '' : 'shown'")
+      #info
+        h1
+          |Ghost Boo-sters!<br>
+        small|Use your mouse as a flashlight and find all the ghosts in the attic before the time runs out.
+        p
+          button(@click="startGame()")
+            |Start
+    #timeout(:class="gameOver ? 'shown' : ''")| {{message}}<br>
+      button(@click="restartGame()")
+        |Again?
     
   script(src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/animejs/2.2.0/anime.min.js')
   script(src='illuminated.js')
   script(src='sketch.js')
